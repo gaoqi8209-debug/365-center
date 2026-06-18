@@ -1,0 +1,748 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>365能歌善舞 · 同修全息查阅中心</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="data-engine.js"></script>
+    <style>
+        :root {
+            --paper: #F4EFE6;
+            --surface: #FCFAF7;
+            --ink: #2D2A24;
+            --ink-medium: #5A5348;
+            --ink-light: #9B9185;
+            --cinnabar: #C1433A;
+            --cinnabar-bg: rgba(193, 67, 58, 0.06);
+            --border: #E8E0D6;
+            --border-light: #F0EAE0;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; margin: 0; }
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #FDFCF0; }
+        .serif-title { font-family: 'Noto Serif SC', serif; }
+
+        .app { height: 100vh; width: 100%; max-width: 480px; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; }
+        .app-main { flex: 1; position: relative; overflow: hidden; }
+
+        .content-section {
+            position: absolute; inset: 0;
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .content-section.active {
+            visibility: visible; opacity: 1;
+            position: relative;
+            height: 100%;
+        }
+
+        /* ═══════════════════════ 第一页 ═══════════════════════ */
+        .scroll-wrap {
+            height: 100%; width: 100%; min-height: 100%;
+            position: relative; overflow: hidden;
+            background: url(beijing.jpg) no-repeat center bottom / cover;
+            background-color: #FDFCF0;
+        }
+        .scroll-wrap::after {
+            content: ''; position: absolute; inset: 0;
+            pointer-events: none; z-index: 0;
+            background: 
+                radial-gradient(ellipse at 12% 20%, rgba(220,210,190,0.10) 0%, transparent 35%),
+                radial-gradient(ellipse at 78% 18%, rgba(225,215,195,0.07) 0%, transparent 30%),
+                radial-gradient(ellipse at 82% 72%, rgba(215,205,185,0.08) 0%, transparent 35%),
+                radial-gradient(ellipse at 25% 80%, rgba(230,220,200,0.06) 0%, transparent 30%),
+                radial-gradient(ellipse at 50% 50%, rgba(240,235,220,0.10) 0%, transparent 40%);
+        }
+        .scroll-overlay {
+            height: 100%; width: 100%;
+            display: flex; flex-direction: column;
+            padding: 6px 12px 28px;
+            background: rgba(253,252,240,0.06);
+            position: relative; z-index: 1;
+        }
+        .layer-header { flex-shrink: 0; text-align: center; }
+        .layer-header .seal-bar {
+            display: inline-flex; align-items: center;
+            background: #2d6a4f; height: 28px;
+            padding: 0 20px; border-radius: 4px;
+        }
+        .layer-header .seal-bar span {
+            font-family: 'Noto Serif SC', serif;
+            color: #fff; font-size: 12px; letter-spacing: 4px;
+        }
+        .layer-header .sub-date {
+            color: #5c4d3c; font-size: 13px; margin-top: 6px;
+            letter-spacing: 2px; opacity: 0.7;
+        }
+        .layer-middle { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 24px; }
+        .hero-number {font-family: Georgia, "Noto Serif SC", serif;
+            font-size: 56px; font-weight: 700; color: #2d6a4f;
+            line-height: 1; text-shadow: 0 2px 8px rgba(45,106,79,0.1);
+        }
+        .hero-sub { color: #5c4d3c; font-size: 13px; margin-top: 2px; letter-spacing: 2px; }
+        .stat-row { display: flex; gap: 6px; width: 100%; margin-top: 10px; }
+        .stat-cell {
+            flex: 1; text-align: center;
+            background: rgba(244,241,222,0.55);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(230,223,195,0.6);
+            border-radius: 8px; padding: 8px 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .stat-cell .n {font-family: Georgia, "Noto Serif SC", serif; font-size: 20px; font-weight: 700; color: #5c4d3c; }
+        .stat-cell .n.pure { color: #2d6a4f; }
+        .stat-cell .n.vip { color: #b8860b; }
+        .stat-cell .n.rest { color: #8a9ba8; }
+        .stat-cell .l { font-size: 13px; color: #8a7e72; margin-top: 1px; }
+        .level-row { display: flex; gap: 10px; justify-content: center; padding: 4px 0 2px; }
+        .level-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #5c4d3c; }
+        .level-item .bar { width: 50px; height: 5px; background: rgba(230,223,195,0.5); border-radius: 3px; overflow: hidden; }
+        .level-item .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #aed581, #2d6a4f); }
+        .level-item .lbl { font-size: 14px; color: #8a7e72; }
+        .layer-poem { flex-shrink: 0; padding: 24px 10px 0; }
+        .layer-poem .text { color: #4a4a4a; font-style: italic; font-family: 'Noto Serif SC', serif; text-align: center; line-height: 1.6; font-size: 15px; opacity: 0.85; }
+        .layer-poem .text .source { display: block; margin-top: 3px; font-size: 9px; color: #8a7e72; opacity: 0.6; font-style: normal; }
+
+        /* ═══════════════════════ 第二页 · 纯文本骨架 ═══════════════════════ */
+        .page-tower {
+            height: 100%; width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F0EFEA;
+        }
+        /* 第二层：奶白主话框 */
+        .frame-middle {
+            width: 92%; height: 96vh;
+            background: #FDFCF0;
+            border-radius: 20px;
+            padding: 16px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 8px 30px rgba(180,170,155,0.12);
+        }
+        /* 第三层：熟宣长轴 */
+        .scroll-card {
+            flex: 1;
+            display: flex; flex-direction: column;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: 
+                /* 宣纸纹理（叠在背景图之上） */
+                radial-gradient(ellipse at 10% 18%, rgba(220,210,190,0.10) 0%, transparent 35%),
+                radial-gradient(ellipse at 75% 10%, rgba(225,215,195,0.07) 0%, transparent 30%),
+                radial-gradient(ellipse at 85% 70%, rgba(215,205,185,0.08) 0%, transparent 35%),
+                radial-gradient(ellipse at 20% 75%, rgba(230,220,200,0.06) 0%, transparent 32%),
+                radial-gradient(ellipse at 50% 50%, rgba(240,235,220,0.10) 0%, transparent 45%),
+
+                /* 底部熟宣色 */
+                #F4F1DE;
+        }
+        .scroll-card > * { position: relative; z-index: 1; }
+        /* 顶栏 */
+        .tower-topbar {
+            flex-shrink: 0;
+            background: transparent;
+            height: 28px;
+            display: flex; align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(200,190,175,0.2);
+        }
+        .tower-topbar .tt {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 13px; color: #5a5a5a; letter-spacing: 1px;
+        }
+        .tower-topbar .tt {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 10px; color: #5a5a5a; letter-spacing: 1px;
+        }
+
+
+        /* ── 首页搜索框 ── */
+        .home-search input:focus { border-color: #2d6a4f; box-shadow: 0 0 0 2px rgba(45,106,79,0.15); }
+        .home-search input::placeholder { color: #c4b8aa; font-size: 11px; }
+
+        /* ── 首页学生修行卡片 ── */
+        .home-student-card { animation: fadeSlideIn 0.35s ease; }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        /* 搜索 */
+        .tower-search {
+            flex-shrink: 0;
+            display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            padding: 0px 20px 4px;
+        }
+        .tower-search .label {
+            font-size: 13px; color: #5c4d3c;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 1px; flex-shrink: 0;
+        }
+        .tower-search .wrap { position: relative; max-width: 180px; flex: 1; }
+        .tower-search input {
+            width: 100%; border: none;
+            border-bottom: 1px solid #e0d8cc;
+            background: transparent; padding: 5px 22px 5px 0;
+            font-size: 13px; outline: none; color: #5c4d3c;
+            font-family: 'Noto Serif SC', serif;
+        }
+        .tower-search input::placeholder { color: #d4c5b0; font-size: 11px; font-family: 'Noto Sans SC', sans-serif; }
+        .tower-search input:focus { border-bottom-color: #b8a99a; }
+        .tower-search .icon {
+            position: absolute; right: 0; top: 50%;
+            transform: translateY(-50%); color: #d4c5b0;
+            pointer-events: none;
+        }
+        .tower-search .btn-inspect {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 13px; color: #5c4d3c;
+            letter-spacing: 1px;
+            background: transparent;
+            border: 1px solid #d4c5b0;
+            border-radius: 4px;
+            padding: 3px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .tower-search .btn-inspect:hover {
+            border-color: #2d6a4f;
+            color: #2d6a4f;
+            background: rgba(45,106,79,0.04);
+        }
+
+        /* 上部总序 + 能量合流 */
+        .tower-summary {
+            flex-shrink: 0;
+            padding: 6px 20px 4px;
+            display: flex; flex-direction: column;
+            gap: 3px;
+        }
+        .ts-name {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 18px; font-weight: 700; color: #5c4d3c;
+            letter-spacing: 1px;
+        }
+        .ts-sub {
+            font-size: 10px; color: #c4b5a0;
+        }
+        .ts-stats {
+            display: flex; gap: 4px;
+            padding: 0;
+        }
+        .ts-stat { text-align: center; flex: 1; padding: 0 2px; }
+        .ts-stat .n {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 15px; font-weight: 700; color: #5c4d3c;
+        }
+        .ts-stat .l { font-size: 13px; color: #A63429; letter-spacing: 0.5px; }
+        .ts-energy {
+            font-size: 13px; color: #5c4d3c;
+            padding: 1px 0;
+        }
+        .ts-energy .hl { color: #2D6A4F; font-weight: 600; }
+        .ts-energy .tag {
+            font-size: 8px; font-weight: 500;
+            color: #5a5a5a;
+        }
+
+        /* 中下部：修行长河 */
+        .tower-river {
+            flex: 1;
+            display: flex; flex-direction: column;
+            padding: 90px 4px 0 4px;
+            min-height: 0;
+            position: relative;
+            background: url(tata2.jpg) no-repeat center -10px / 100% auto;
+        }
+        /* 灰度遮罩覆盖层 - 确保背景图显示在文字下方 */
+        .tower-river > * { position: relative; z-index: 1; }
+        /* 逐层灰度遮罩 */
+        .r-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex: 1.0;
+            min-height: 40px;
+            border-radius: 6px;
+            padding: 1px 8px;
+            position: relative;
+            transition: all 0.6s ease;
+        }
+        .r-row.lit {
+            flex: 1.2;
+            background: rgba(212,197,176,0.2);
+        }
+        .r-mask {
+            position: absolute !important;
+            inset: 0;
+            background: rgba(255,255,255,0.85);
+            border-radius: 6px;
+            z-index: 0 !important;
+            pointer-events: none;
+            display: block !important;
+        }
+        .r-row > * { position: relative; z-index: 1; }
+        /* 上半：9行垂直次第 */
+        .river-upper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            padding: 4px 0;
+        }
+        .r-line-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20px;
+            flex-shrink: 0;
+            height: 100%;
+        }
+        .r-dot {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2.5px solid #e6dfc3;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .r-dot.lit {
+            background: #A63429;
+            border-color: #A63429;
+            box-shadow: 0 0 10px rgba(166,52,41,0.25);
+        }
+        .r-dot.lit::after { content: '✦'; color: #fff; font-size: 9px; }
+        .r-line {
+            width: 2px;
+            flex: 1;
+            min-height: 6px;
+            background: #e0d8cc;
+        }
+        .r-label-area {
+            flex: 1;
+            min-width: 0;
+            padding-bottom: 2px;
+        }
+        .r-label {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #A6A29A;
+            line-height: 1.3;
+            transition: all 0.6s ease;
+        }
+        .r-label.lit { color: #A63429; }
+        .r-sub {
+            font-size: 15px;
+            color: #d4c5b0;
+            transition: all 0.6s ease;
+        }
+        .r-sub.lit { color: rgba(166,52,41,0.45); }
+        .r-quote {
+            font-size: 13px;
+            color: #A63429;
+            font-style: italic;
+            display: block;
+            margin-top: 1px;
+            font-weight: 300;
+        }
+
+        /* 下半：3块横向基石 */
+        .river-lower {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 2px 2px;
+            border-top: 1px solid rgba(200,190,175,0.2);
+            margin-top: 1px;
+        }
+        .r-base {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 4px 16px;
+            border-radius: 6px;
+            position: relative;
+        }
+        .r-base > * { position: relative; z-index: 1; }
+        .r-base .bd {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 2.5px solid #e6dfc3;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s ease;
+        }
+        .r-base .bd.lit { background: #A63429; border-color: #A63429; box-shadow: 0 0 8px rgba(166,52,41,0.2); }
+        .r-base .bd.lit::after { content: '✦'; color: #fff; font-size: 8px; }
+        .r-base .bn {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 12px; font-weight: 700;
+            color: #A6A29A;
+            transition: all 0.6s ease;
+        }
+        .r-base .bn.lit { color: #A63429; }
+        .r-base .bs {
+            font-size: 14px;
+            color: #d4c5b0;
+            transition: all 0.6s ease;
+        }
+        .r-base .bs.lit { color: rgba(166,52,41,0.4); }
+
+        .tower-save {
+            flex-shrink: 0;
+            text-align: center;
+            padding: 2px 20px 10px;
+        }
+        .tower-save button {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid rgba(90,90,90,0.25);
+            border-radius: 6px;
+            background: transparent;
+            color: #5c4d3c;
+            font-size: 15px;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tower-save button:hover { border-color: rgba(90,90,90,0.5); color: #3a3a3a; background: rgba(244,241,222,0.3); }
+
+        /* ── 导航 ── */
+        .bottom-nav {
+            display: flex; background: transparent;
+            padding: 0px 16px 2px;
+            height: 36px; flex-shrink: 0;
+        }
+        .nav-btn {
+            flex: 1; display: flex; flex-direction: row;
+            align-items: center; justify-content: center; gap: 4px;
+            padding: 4px 0;
+            border: none; background: none; cursor: pointer;
+            transition: color 0.3s; color: #b0bec5; font-family: inherit;
+        }
+        .nav-btn.active { color: #2d6a4f; }
+        .nav-btn span { font-size: 9px; font-weight: 500; letter-spacing: 0.5px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <main class="app-main">
+
+            <!-- ━━━ 第一页：共修晴雨录 ━━━ -->
+            <section id="page-home" class="content-section active">
+                <div class="scroll-wrap">
+                    <div class="scroll-overlay">
+                        <div class="layer-header">
+                            <div class="seal-bar"><span>◈ 365能歌善舞 · 同修晴雨录 ◈</span></div>
+                            <div class="sub-date">2026年6月15日 · 照见当日资粮</div>
+                        </div>
+                        
+                        <!-- 搜索框 -->
+                        <div class="home-search" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 0 2px;margin-top:5px;">
+                            <span class="home-search-label" style="font-size:12px;color:#5c4d3c;font-family:'Noto Serif SC',serif;letter-spacing:1px;flex-shrink:0;">寻迹</span>
+                            <div class="home-search-wrap" style="position:relative;max-width:180px;flex:1;">
+                                <input type="text" id="home-search-input" placeholder="输入同修昵称..." autocomplete="off" style="width:100%;border:1px solid #e8e0d6;border-radius:16px;background:rgba(255,255,255,0.7);padding:5px 28px 5px 12px;font-size:12px;color:#2d2a24;outline:none;font-family:'Noto Sans SC',sans-serif;">
+                                <button id="home-search-btn" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;color:#9b9185;display:flex;align-items:center;">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                </button>
+                            </div>
+                            <button id="home-inspect-btn" style="background:#2d6a4f;border:none;border-radius:12px;color:#fff;padding:4px 14px;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;letter-spacing:1px;">调阅</button>
+                        </div>                        <div class="layer-middle" style="margin-top:-8px;">
+                            <div class="hero-number">170</div>
+                            <div class="hero-sub">位同修今日在一起精进</div>
+                            <div class="stat-row">
+                                <div class="stat-cell"><div class="n pure">53</div><div class="l">🪷 纯净全勤</div></div>
+                                <div class="stat-cell"><div class="n vip">135</div><div class="l">💎 当月通关</div></div>
+                                <div class="stat-cell" id="stat-yuan"><div class="n" style="color:#5c4d3c;">0</div><div class="l">🌊 同修缘深</div></div>
+                            
+                            </div>
+                            <div class="level-row">
+                                <div class="level-item"><span>✨ 三阶</span><div class="bar"><div class="bar-fill" style="width:82%"></div></div><span class="lbl">139人</span></div>
+                                <div class="level-item"><span>🌸 四阶</span><div class="bar"><div class="bar-fill" style="width:18%"></div></div><span class="lbl">31人</span></div>
+                            </div>
+                        </div>
+                        <div class="stat-row" style="margin-top:4px;">
+                            <div class="stat-cell"><div class="n" style="color:#7B2D8E;">62</div><div class="l">🤲 功德布施</div></div>
+                            <div class="stat-cell"><div class="n" style="color:#D4A017;">72</div><div class="l">🌱 覆履如初</div></div>
+                        </div>
+                        <div id="home-student-card" style="flex-shrink:0;margin:8px 0 4px;">
+                            <div style="padding:2px 0;">
+                                <div id="home-student-body"></div>
+                            </div>
+                        
+                        </div>
+                        
+                    </div>
+                </div>
+                <img src="dong.gif" style="position:absolute;right:108px;bottom:28px;width:48px;height:48px;z-index:10;pointer-events:none;opacity:0.8;">
+            </section>
+
+                        <!-- ━━━ 第二页：灯燃九层塔 ━━━ -->
+            <section id="page-tower" class="content-section">
+                <div class="page-tower">
+                    <div class="frame-middle">
+                        <div class="scroll-card">
+                            <div class="tower-topbar">
+                                <span class="tt">◈ 365能歌善舞 · 同修晴雨录 ◈</span>
+                            </div>
+                            <div id="tower-body" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+                                <div id="tower-student-card" style="flex-shrink:0;padding:6px 20px 4px;display:flex;flex-direction:column;gap:3px;">
+                                    <div id="tower-student-name" style="font-family:&apos;Noto Serif SC&apos;,serif;font-size:18px;font-weight:700;color:#5c4d3c;letter-spacing:1px;text-align:center;"></div><div </div>
+                        </div>
+                                                <!-- 学生修行卡片（搜索后显示） -->
+                        <div 
+                                </div>
+                                <div id="tower-river-container" style="flex:1;display:flex;flex-direction:column;min-height:0;position:relative;" class="tower-river"></div>
+                                <div id="tower-hint" style="flex:1;display:flex;flex-direction:column;align-items:center;padding-top:50px;color:#d4c5b0;display:none;">🔍 请先在首页搜索同修</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section> 
+
+        </main>    <nav class="bottom-nav">
+            <button onclick="switchTab('home')" id="nav-home" class="nav-btn active">
+                <span style="font-size:16px;">📜</span>
+                <span>共修晴雨录</span>
+            </button>
+            <button onclick="switchTab('tower')" id="nav-tower" class="nav-btn">
+                <span style="font-size:16px;">🏯</span>
+                <span>灯燃九层塔</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // ─── 数据加载 ───
+        function getData() {
+            return DataEngine.loadData();
+        }
+
+        // ─── 当前选中的同修 ───
+        var currentStudent = null;
+
+        // ─── 首页渲染 ───
+        function renderHome() {
+            const data = getData();
+            const hs = data.homeStats || { totalActive:0, pureCount:0, d210Count:0, restCount:0, level3Count:0, level4Count:0, level3Pct:0, level4Pct:0, revivePeople:0, reviveTotal:0 };
+            
+            // Update date with latest check-in date
+            const dates = data.checkinDates || [];
+            if (dates.length > 0) {
+                const lastDate = dates[dates.length - 1];
+                const dateEl = document.querySelector('.sub-date');
+                if (dateEl) {
+                    const parts = lastDate.split('-');
+                    if (parts.length === 3) {
+                        dateEl.textContent = parts[0] + '年' + parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日 · 照见当日资粮';
+                    }
+                }
+            }
+            
+            document.querySelector('.hero-number').textContent = hs.totalActive;
+            
+            const cells = document.querySelectorAll('.stat-cell .n');
+            if (cells.length >= 2) {
+                cells[0].textContent = hs.pureCount;
+                cells[1].textContent = hs.d210Count;
+            }
+            
+            const l3labels = document.querySelectorAll('.level-item .lbl');
+            if (l3labels.length >= 2) {
+                l3labels[0].textContent = hs.level3Count + '人';
+                l3labels[1].textContent = hs.level4Count + '人';
+            }
+            const fills = document.querySelectorAll('.bar-fill');
+            if (fills.length >= 2) {
+                fills[0].style.width = hs.level3Pct + '%';
+                fills[1].style.width = hs.level4Pct + '%';
+            }
+            
+            // 破茧成蝶 / 破土重萌 (stat row after level row)
+            const allStatCells = document.querySelectorAll('.stat-cell');
+            if (allStatCells.length >= 5) {
+                allStatCells[3].querySelector('.n').textContent = hs.revivePeople;
+                allStatCells[4].querySelector('.n').textContent = hs.reviveTotal;
+            }
+            
+            // 更新同修缘深
+            var yuanEl = document.getElementById('stat-yuan');
+            if (yuanEl && currentStudent) {
+                yuanEl.querySelector('.n').textContent = currentStudent.totalDays;
+            }
+            
+            // 默认显示「我的」空数据卡片
+            var cardEl = document.getElementById('home-student-card');
+            var bodyEl = document.getElementById('home-student-body');
+            if (cardEl && bodyEl) {
+                var mySelf = { name:'我的', danceMin:0, chantMin:0, monthlyDays:0, totalDays:0, monthlyLeakDays:0, monthlyDanceMin:0, monthlyChantMin:0, monthsCleared:[] };
+                bodyEl.innerHTML = buildResult(mySelf);
+                cardEl.className = 'home-student-card';
+                currentStudent = mySelf;
+            }
+        }
+
+        // ─── 12 月塔定义 ───
+        const TOWER_LEVELS = [
+            { id: 'l9',    label: '大圆满',    date: '2027.05', month: 12, seals: '' },
+            { id: 'l8',    label: '圆满',      date: '2027.04', month: 11, seals: '' },
+            { id: 'l7',    label: '现证',      date: '2027.03', month: 10, seals: '' },
+            { id: 'l6',    label: '相应',      date: '2027.02', month: 9,  seals: '' },
+            { id: 'l5',    label: '觉行',      date: '2027.01', month: 8,  seals: '' },
+            { id: 'l4',    label: '净行',      date: '2026.12', month: 7,  seals: '' },
+            { id: 'l3',    label: '发心',      date: '2026.11', month: 6,  seals: '' },
+            { id: 'l2',    label: '观缘',      date: '2026.10', month: 5,  seals: '' },
+            { id: 'l1',    label: '闻思',      date: '2026.09', month: 4,  seals: '' },
+        ];
+
+        const BASE_BLOCKS = [
+            { id: 'b1', label: '归真', date: '2026.06', month: 1, seals: '' },
+            { id: 'b2', label: '惜缘', date: '2026.07', month: 2, seals: '' },
+            { id: 'b3', label: '励勤', date: '2026.08', month: 3, seals: '' },
+        ];
+
+        const COMPANION_QUOTES = {
+            l9: '圆满非终点，是起点。', l8: '圆满资粮，自性具足。', l7: '现证本来，无一可得。',
+            l6: '相应一处，万法归宗。', l5: '觉行淬炼，方见真金。', l4: '净行如莲，出淤泥而不染。',
+            l3: '发心一发，天地同宽。', l2: '观缘起，知性空。', l1: '闻思为眼，修行是足。',
+            b1: '归真返璞，人格贤善。', b2: '惜缘当下，一念万年。', b3: '励勤不懈，水滴石穿。',
+        };
+
+        function renderRiver(clearedMonths) {
+            const tower = TOWER_LEVELS;
+            const upper = tower.map((l, idx) => {
+                const lited = clearedMonths.includes(l.month);
+                const isLast = idx === tower.length - 1;
+                const quote = lited ? '<span class="r-quote">' + (COMPANION_QUOTES[l.id] || '') + '</span>' : '';
+                const s = l.seals ? '<span style="font-size:10px;opacity:0.5;letter-spacing:2px;margin-left:6px;">' + l.seals + '</span>' : '';
+                const mask = lited ? '' : '<div class="r-mask"></div>';
+                return '<div class="r-row ' + (lited?'lit':'') + '">' + mask +
+                    '<div class="r-line-col"><div class="r-dot ' + (lited?'lit':'') + '"></div>' + (isLast ? '' : '<div class="r-line"></div>') + '</div>' +
+                    '<div class="r-label-area"><span class="r-label ' + (lited?'lit':'') + '">' + (lited ? l.label + s : '') + '</span>' + quote + '</div>' +
+                    '<span class="r-sub ' + (lited?'lit':'') + '">' + l.date + '</span></div>';
+            }).join('');
+
+            const lower = BASE_BLOCKS.map(b => {
+                const lited = clearedMonths.includes(b.month);
+                const s = b.seals ? '<span style="font-size:9px;opacity:0.5;letter-spacing:2px;margin-left:3px;">' + b.seals + '</span>' : '';
+                const mask = lited ? '' : '<div class="r-mask"></div>';
+                return '<div class="r-base ' + (lited?'lit':'') + '">' + mask +
+                    '<div class="bd ' + (lited?'lit':'') + '"></div>' +
+                    '<span class="bn ' + (lited?'lit':'') + '">' + b.label + s + '</span>' +
+                    '<span class="bs ' + (lited?'lit':'') + '">' + b.date + '</span></div>';
+            }).join('');
+
+            return '<div class="river-upper">' + upper + '</div><div class="river-lower">' + lower + '</div>';
+        }
+
+        function buildResult(s) {
+            return '<div class="tower-summary">' +
+                '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">' +
+                '<span class="ts-name">◈ ' + s.name + ' · 晴雨录 ◈</span></div>' +
+                '<div class="ts-stats">' +
+                '<div class="ts-stat"><div class="n">' + s.monthlyDays + '<span style="font-size:9px;color:#b8a99a;">天</span></div><div class="l">当月履约</div></div>' +
+                
+                '<div class="ts-stat"><div class="n">' + (s.monthlyLeakDays || 0) + '<span style="font-size:9px;color:#b8a99a;">天</span></div><div class="l">有漏净计</div></div></div>' +
+                '<div style="background:rgba(244,241,222,0.55);backdrop-filter:blur(4px);border:1px solid rgba(230,223,195,0.6);border-radius:8px;padding:9px 8px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
+                '<span style="font-size:12px;color:#2D6A4F;font-weight:600;">总能量池：舞 ' + s.danceMin + ' · 诵 ' + s.chantMin + ' · 合计 <span class="hl">' + (s.danceMin + s.chantMin) + '</span></span>' +
+                '<div class="ts-energy" style="text-align:center;">🌟 本月 能量池：舞 ' + (s.monthlyDanceMin||0) + ' · 诵 ' + (s.monthlyChantMin||0) + ' · 合计 <span class="hl">' + ((s.monthlyDanceMin||0)+(s.monthlyChantMin||0)) + '</span></div>' +
+                '<div style="display:flex;gap:4px;width:100%;margin-top:12px;">' +
+                '<div style="flex:1;text-align:center;background:rgba(255,255,255,0.5);border-radius:6px;padding:4px 2px;">' +
+                '<div style="font-size:11px;color:#5c4d3c;">当月通关规则</div>' +
+                '<div style="font-size:12px;color:#A63429;font-weight:600;">舞210/诵210</div></div>' +
+                '<div style="flex:1;text-align:center;background:rgba(255,255,255,0.5);border-radius:6px;padding:4px 2px;">' +
+                '<div style="font-size:11px;color:#5c4d3c;">目标达成情况</div>' +
+                '<div style="font-size:12px;font-weight:600;">' + ((s.monthlyDanceMin||0) >= 210 && (s.monthlyChantMin||0) >= 210 ? '💎通关' : '⚪未通关') + '</div></div></div></div>' +
+                '</div>';
+                        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.content-section').forEach(function(el) { el.classList.remove('active'); });
+            document.getElementById('page-' + name).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(function(el) { el.classList.remove('active'); });
+            document.getElementById('nav-' + name).classList.add('active');
+            if (name === 'home') renderHome();
+            if (name === 'tower') renderTowerPage();
+        }
+
+                // ─── 首页搜索 ───
+        function homeSearch() {
+            var input = document.getElementById("home-search-input").value.trim();
+            var data = getData();
+            var student = data.students.find(function(s) { return s.name.indexOf(input) !== -1; });
+            var card = document.getElementById("home-student-card");
+            var body = document.getElementById("home-student-body");
+            if (student) {
+                body.innerHTML = buildResult(student);
+                card.className = "home-student-card";
+                currentStudent = student;
+                var yuanEl2 = document.getElementById('stat-yuan');
+                if (yuanEl2) yuanEl2.querySelector('.n').textContent = currentStudent.totalDays;
+            } else {
+                if (input) body.innerHTML = "<div style='text-align:center;padding:20px 0;color:#b8a99a;font-size:14px;'>🔍 未找到同修「" + input + "」</div>";
+            }
+        }
+
+        function renderTowerPage() {
+            var nameEl = document.getElementById("tower-student-name");
+            var riverEl = document.getElementById("tower-river-container");
+            var hintEl = document.getElementById("tower-hint");
+            if (!nameEl || !riverEl || !hintEl) return;
+            if (currentStudent) {
+                nameEl.textContent = currentStudent.name;
+                riverEl.innerHTML = renderRiver(currentStudent.monthsCleared);
+                riverEl.style.display = "";
+                hintEl.style.display = "none";
+            } else {
+                riverEl.style.display = "none";
+                hintEl.style.display = "";
+            }
+        }
+function exportCard() {
+            var el = document.querySelector('#search-result');
+            if (!el || el.classList.contains('hidden')) return;
+            html2canvas(el, { backgroundColor: '#FDFCF0', scale: 2, useCORS: true }).then(function(canvas) {
+                var link = document.createElement('a');
+                link.download = '修行卷轴.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        document.getElementById('home-search-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') homeSearch(); });
+        document.getElementById('home-search-btn').addEventListener('click', homeSearch);
+        document.getElementById('home-inspect-btn').addEventListener('click', homeSearch);
+        switchTab('home');
+    </script>body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
